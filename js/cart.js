@@ -15,8 +15,8 @@ function loadCart() {
     if (cart.length === 0) {
         cartContainer.innerHTML = `
             <div class="empty-cart">
-                <p>Keranjang lo masih kosong nih bro.</p>
-                <a href="index.html">← Kembali belanja</a>
+                <p>Shopping Cart Is Empty</p>
+                <a href="index.html">Return Shopping <- </a>
             </div>
         `;
         document.querySelector('.cart-summary').style.display = 'none'; // Sembunyikan summary

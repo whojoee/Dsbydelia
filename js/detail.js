@@ -103,7 +103,7 @@ async function loadDetail() {
 document.getElementById('addToCartBtn')?.addEventListener('click', () => {
     const size = document.getElementById('sizePicker').value;
     if (!size) {
-        alert('Pilih ukuran dulu bro!');
+        alert('Pick Your Size First!');
         return;
     }
     
