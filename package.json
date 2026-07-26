@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.8",
     "cookie": "^1.1.1",
     "iceberg-js": "^0.8.1",
     "midtrans-client": "^1.4.3",
