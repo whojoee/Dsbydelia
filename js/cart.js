@@ -87,16 +87,81 @@ function calculateTotals(cart) {
 }
 
 // 6. Fungsi pas tombol Checkout ditekan
-function goToCheckout() {
+// 6. Fungsi pas tombol Checkout ditekan (Di-update untuk Midtrans)
+async function goToCheckout() {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
+    
+    // Cek kalau keranjang kosong
     if (cart.length === 0) {
-        alert("Keranjang kosong bro! Tambahin barang dulu ya.");
+        alert("Shopping Cart Is Empty!");
         return;
     }
-    // Nanti ini kita arahin ke halaman checkout beneran
-    window.location.href = "checkout.html"; 
-}
 
+    // 6a. Siapin data total harga
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const orderId = "ORDER-" + new Date().getTime(); // Bikin ID pesanan unik pakai waktu
+
+    // 6b. Susun data barang sesuai format yang diminta API payment.js
+    const itemDetails = cart.map(item => ({
+        id: "ITEM-" + Math.floor(Math.random() * 1000), // Bikin ID barang random
+        price: item.price,
+        quantity: item.qty,
+        name: item.name.substring(0, 50) // Nama maksimal 50 karakter buat Midtrans
+    }));
+
+    try {
+        // 6c. Tembak API Vercel lu pakai POST
+        const response = await fetch('/api/payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // Kirim data order_id, gross_amount, items, dll yang dibutuhin API
+            body: JSON.stringify({
+                order_id: orderId,
+                gross_amount: total,
+                items: itemDetails,
+                customer_details: {
+                    first_name: "Customer", // Nanti ini bisa diubah kalau lu udah bikin form input nama
+                    email: "customer@example.com",
+                    phone: "08123456789"
+                }
+            })
+        });
+
+        const data = await response.json();
+
+        // 6d. Munculin Popup Midtrans kalau dapet token
+        if (data.token) {
+            window.snap.pay(data.token, {
+                onSuccess: function(result){
+                    alert("Pembayaran Berhasil!"); 
+                    console.log(result);
+                    // Hapus isi keranjang kalau udah sukses bayar
+                    localStorage.removeItem('shoppingCart');
+                    loadCart(); 
+                },
+                onPending: function(result){
+                    alert("Menunggu Pembayaran!"); 
+                    console.log(result);
+                },
+                onError: function(result){
+                    alert("Pembayaran Gagal!"); 
+                    console.log(result);
+                },
+                onClose: function(){
+                    alert('Continue the payment!');
+                }
+            });
+        } else {
+            console.error("Token gagal didapat:", data);
+            alert("Sistem pembayaran lagi sibuk bro.");
+        }
+    } catch (error) {
+        console.error("Ada error koneksi:", error);
+        alert("Gagal nyambung ke server!");
+    }
+}
 // 7. Jalankan fungsi loadCart saat halaman cart.html dibuka
 window.addEventListener("DOMContentLoaded", () => {
     loadCart();
