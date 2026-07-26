@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS by. Delia Septianti</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Panggil CSS -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo-container">
+                <img src="Imageds/DS LOGO HORIZONTAL.png" alt="Logo" class="main-logo">
+            </div>
+            <div class="nav-links">
+                <a href="search.html">Search</a>
+                <a href="#">My Account</a>
+                <a href="cart.html" id="bag-counter">Bag (0)</a>
+            </div>
+        </header>
+
+        <!-- HERO SECTION -->
+        <div class="hero-section">
+            <div class="hero-img-wrapper"><img src="Imageds/Hero Section Web Ds.jpeg" alt="Hero"></div>
+            <div class="hero-text-wrapper"><p>Baju studio adalah warisan kenyamanan pakaian kami sangat memuaskan punya ini</p></div>
+        </div>
+
+        <!-- BEST SELLER SECTION -->
+        <div class="section-header">
+            <a href="category.html?type=bestseller" class="section-link">
+                <div class="section-title">Best Seller</div><div class="arrow-line"></div>
+            </a>
+        </div>
+        
+        <!-- KITA BALIKIN FOTO MANUALNYA KE SINI -->
+        <div class="grid-2x2" id="bestseller-grid"></div>
+
+        <!-- PREMIUM SECTION -->
+        <div class="premium-section">
+            <div class="premium-title">Best of Premium 2026</div>
+            <div class="premium-showcase"><img src="Imageds/Premium Showcase 1.jpeg" alt="Premium"></div>
+            <div class="premium-caption">Pollo Vest By DS 2026</div>
+        </div>
+
+        <!-- ALL PRODUCT SECTION -->
+        <div class="section-header">
+            <a href="category.html?type=all" class="section-link">
+                 <div class="section-title">All Product</div><div class="arrow-line"></div>
+             </a>
+        </div>
+        
+        <!-- KITA BALIKIN FOTO MANUALNYA KE SINI -->
+        <div class="grid-1x3" id="allproudct-grid"></div>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="footer-left">
+                <p>My Account<br>Payment Confirmation<br>Shipping Information</p>
+                <p>Contact us via line:<br>Instagram<br>Tiktok</p>
+            </div>
+            <div class="footer-center">
+                <img src="Imageds/DS LOGO HORIZONTAL 2.png" alt="Logo Bawah" class="footer-logo-img">
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Panggil JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

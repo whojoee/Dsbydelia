@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS by. Delia Septianti - Category</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Panggil CSS -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/category.css">
+</head>
+<body>
+    <div class="container">
+        
+        <!-- HEADER -->
+        <header>
+            <div class="header-top">
+                <img src="Imageds/DS LOGO HORIZONTAL.png" alt="DS Logo" class="main-logo">
+                <div class="nav-links">
+                    <a href="Search.html">Search</a>
+                    <a href="#">My Account</a>
+                    <a href="cart.html" id="bag-counter">Bag (0)</a>
+                </div>
+            </div>
+            <div class="header-bottom">
+                 <a href="#" onclick="window.history.back(); return false;" class="back-link">
+                    <div class="back-arrow"></div>
+                 </a>
+            </div> 
+        </header>
+
+        <!-- JUDUL HALAMAN (Bakal berubah otomatis) -->
+        <div class="category-title-link">
+            <div class="category-title" id="page-title">Loading...</div>
+        </div>       
+        
+        <!-- WADAH PRODUK (Bakal diisi otomatis sama JS) -->
+        <div class="product-grid" id="product-list">
+            <!-- Data produk masuk ke sini -->
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="footer-left">
+                <p>My Account<br>Payment Confirmation<br>Shipping Information</p>
+                <p>Contact us via line:<br>Instagram<br>Tiktok</p>
+            </div>
+            <div class="footer-center">
+                <img src="Imageds/DS LOGO HORIZONTAL 2.png" alt="DS Logo Icon" class="footer-logo-img">
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Panggil File Logika Kategori -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/category.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+.hero-section { display: flex; align-items: center; width: 100%; margin-bottom: 40px; gap: 20px; }
+.hero-img-wrapper { width: 55%; }
+.hero-img-wrapper img { width: 100%; height: auto; border: 1px solid #333; display: block; }
+.hero-text-wrapper { width: 45%; }
+.hero-text-wrapper p { font-size: 12px; line-height: 1.6; color: #444; font-style: italic; font-family: 'Playfair Display', serif; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-link { display: flex; align-items: center; justify-content: space-between; width: 100%; text-decoration: none; color: #333; }
+.section-title { font-size: 14px; font-weight: bold; text-transform: capitalize; letter-spacing: 1px; }
+.arrow-line { flex-grow: 1; height: 1px; background-color: #333; position: relative; margin-left: 20px; }
+.arrow-line::after { content: ''; position: absolute; right: 0; top: -3px; width: 7px; height: 7px; border-top: 1px solid #333; border-right: 1px solid #333; transform: rotate(45deg); }
+.grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 40px; width: 100%; }
+.grid-1x3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 60px; width: 100%; }
+.grid-item { display: flex; flex-direction: column; width: 100%; }
+.product-link { text-decoration: none; color: inherit; display: flex; flex-direction: column; width: 100%; }
+.product-img { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; border: 1px solid #333; }
+.product-info { margin-top: 10px; }
+.product-name { font-size: 11px; font-weight: bold; color: #222; line-height: 1.4; }
+.product-price { font-size: 10px; color: #777; margin-top: 4px; }
+.premium-section { margin-bottom: 40px; width: 100%; }
+.premium-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #666; margin-bottom: 15px; }
+.premium-showcase img { width: 100%; height: auto; display: block; }
+.premium-caption { font-size: 10px; color: #555; margin-top: 10px; letter-spacing: 1px; }

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS by. Delia Septianti - Search</title>
+    <style>
+        /* --- Core Reset & Font Setup --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: #faf8f5;
+            color: #333333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px; /* Standar mobile kontainer lu */
+            background-color: #faf8f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+
+        /* --- Header Section --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 15px;
+            width: 100%;
+        }
+
+        .main-logo {
+            height: 45px;          /* Menyesuaikan tinggi logo agar pas */
+            width: auto;
+            object-fit: contain;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Tombol Back Arrow Kiri */
+        .back-arrow {
+            width: 65px;
+            height: 1px;
+            background-color: #333;
+            position: relative;
+        }
+
+        .back-arrow::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -4px;
+            width: 8px;
+            height: 8px;
+            border-bottom: 1px solid #333;
+            border-left: 1px solid #333;
+            transform: rotate(45deg);
+        }
+
+        .back-link:hover {
+            opacity: 0.6;
+        }
+
+        /* --- Search Container --- */
+        .search-wrapper {
+            padding: 40px 15px;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Input Form Bergaya Minimalis */
+        .search-input {
+            width: 100%;
+            padding: 12px 90px 12px 5px; /* Kasih padding kanan biar teks input gak tabrakan ama placeholder */
+            font-size: 16px;
+            background-color: transparent;
+            border: none;
+            border-bottom: 2px solid #333333; /* Garis bawah hitam tebal sesuai mockup */
+            outline: none;
+            color: #333333;
+            letter-spacing: 1px;
+        }
+
+        /* Teks Custom "• Search" di Ujung Kanan */
+        .search-placeholder-text {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            font-weight: 500;
+            color: #000000;
+            letter-spacing: 1px;
+            pointer-events: none; /* Biar kalau teksnya gak sengaja keklik, tetep bisa ngetik */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- HEADER -->
+        <header>
+            <!-- Logo berupa file foto, tinggal arahin src ke file foto lu -->
+            <img src="Imageds/DS LOGO HORIZONTAL.png" alt="DS Logo" class="main-logo">
+            
+            <!-- Tombol Panah Balik ke Halaman Utama Aman Anti Layar Hitam -->
+            <a href="index.html" class="back-link">
+                <div class="back-arrow"></div>
+            </a>
+        </header>
+
+        <!-- SEARCH BOX SECTION -->
+        <div class="search-wrapper">
+            <input type="text" class="search-input" id="searchField">
+            <span class="search-placeholder-text" id="placeholderText">• Search</span>
+        </div>
+
+    </div>
+
+    <!-- Sedikit JavaScript biar tulisan "• Search" ilang otomatis pas user mulai ngetik -->
+    <script>
+        const searchField = document.getElementById('searchField');
+        const placeholderText = document.getElementById('placeholderText');
+
+        searchField.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                placeholderText.style.display = 'none';
+            } else {
+                placeholderText.style.display = 'block';
+            }
+        });
+    </script>
+
+</body>
+</html>

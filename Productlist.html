@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS by. Delia Septianti - Category Menu</title>
+    <style>
+        /* --- Core Reset & Font Setup --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: #faf8f5;
+            color: #333333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px; /* Sesuai dengan pembatas kontainer mobile lu */
+            background-color: #faf8f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+
+        /* --- Header Section --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 15px;
+            width: 100%;
+        }
+
+        .main-logo {
+            height: 45px;          
+            width: auto;
+            object-fit: contain;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Tombol Back Arrow Kiri */
+        .back-arrow {
+            width: 65px;
+            height: 1px;
+            background-color: #333;
+            position: relative;
+        }
+
+        .back-arrow::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -4px;
+            width: 8px;
+            height: 8px;
+            border-bottom: 1px solid #333;
+            border-left: 1px solid #333;
+            transform: rotate(45deg);
+        }
+
+        .back-link:hover {
+            opacity: 0.6;
+        }
+
+        /* --- Category List Section --- */
+        .category-menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Jarak renggang vertikal antar tulisan kategori */
+            padding: 100px 30px;
+            width: 100%;
+        }
+
+        .category-item {
+            font-size: 20px; /* Ukuran teks dibikin lebih besar dan menonjol */
+            font-weight: 500;
+            text-decoration: none;
+            color: #000000; /* Warna hitam bersih */
+            letter-spacing: 2px; /* Spasi antar huruf agar estetik */
+            text-transform: capitalize;
+            transition: opacity 0.2s ease;
+            width: max-content;
+        }
+
+        .category-item:hover {
+            opacity: 0.5; /* Efek pudar pas ditunjuk kursor */
+        }
+
+        /* --- Footer Section --- */
+        footer {
+            border-top: 1px solid #dcd6cd;
+            padding: 30px 0px 20px 0px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 95%;
+            margin-top: auto;
+        }
+
+        .footer-left {
+            font-size: 8px;
+            line-height: 1.6;
+            color: #777;
+            width: 35%;
+        }
+
+        .footer-left p {
+            margin-bottom: 15px;
+        }
+
+        .footer-center {
+            display: table-cell;
+            width: 25%;
+            text-align:right;
+            vertical-align:middle;
+        }
+
+        .footer-logo-img {
+            height: 35px;
+            width: 180px;
+            display:inline-block;
+            margin-left: -95px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- HEADER -->
+        <header>
+            <!-- Arahkan src ke logo horizontal milik lu -->
+            <img src="Imageds/DS LOGO HORIZONTAL.png" alt="DS Logo" class="main-logo">
+            
+            <!-- Tombol Panah Balik langsung ke Halaman Utama (Index) -->
+            <a href="index.html" class="back-link">
+                <div class="back-arrow"></div>
+            </a>
+        </header>
+
+        <!-- CATEGORY LIST -->
+        <nav class="category-menu-list">
+            <!-- Lu bisa isi href-nya nanti kalau halaman per-kategori udah lu bikin ya bor -->
+            <a href="Vest.html" class="category-item">Vest</a>
+            <a href="Shirt.html" class="category-item">Shirt</a>
+            <a href="Blazer.html" class="category-item">Blazer</a>
+            <a href="Skirt.html" class="category-item">Skirt</a>
+            <a href="Jacket.html" class="category-item">Jacket</a>
+            <a href="Oneset.html" class="category-item">Oneset</a>
+            <a href="Bottoms.html" class="category-item">Bottoms</a>
+        </nav>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="footer-left">
+                <p>My account<br>Payment confirmation<br>Shipping information</p>
+                <p>Contact customer care<br>Instagram<br>Tiktok</p>
+            </div>
+            <div class="footer-center">
+                <!-- Arahkan src ke logo inisial DS punya lu -->
+                <img src="Imageds/DS LOGO HORIZONTAL 2.png" alt="DS Icon" class="footer-logo-img">
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>
