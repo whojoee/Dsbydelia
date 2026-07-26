@@ -97,6 +97,9 @@ async function goToCheckout() {
         return;
     }
 
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
     // 6a. Siapin data total harga
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const orderId = "ORDER-" + new Date().getTime(); // Bikin ID pesanan unik pakai waktu
@@ -130,6 +133,8 @@ async function goToCheckout() {
         });
 
         const data = await response.json();
+
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
 
         // 6d. Munculin Popup Midtrans kalau dapet token
         if (data.token) {
