@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - DS by Delia Septianti</title>
+    
+    <!-- Keluar 1 folder (../) buat ngambil CSS global -->
+    <link rel="stylesheet" href="../global.css">
+    
+    <!-- Script Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <!-- Keluar 1 folder (../) buat ngambil logo.png -->
+                <img src="../Imageds/DS LOGO HORIZONTAL.png" alt="DS by Delia Septianti" class="h-10 w-auto object-contain">
+                <span class="text-xl font-bold text-gray-700 hidden sm:block border-l-2 pl-4 border-gray-300">Admin</span>
+            </div>
+            
+            <!-- Link balik ke halaman toko utama -->
+            <div>
+                <a href="../index.html" class="text-sm font-medium text-gray-500 hover:text-black transition flex items-center gap-1">
+                    &larr; Balik ke Toko
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-4 sm:p-8 max-w-7xl mx-auto">
+        
+        <!-- Judul Halaman -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Daftar Pesanan</h1>
+                <p class="text-sm text-gray-500 mt-1"></p>
+            </div>
+
+            <div class="flex space-x-3">
+    <!-- Dropdown Filter Baru -->
+    <select id="status-filter" class="border border-gray-300 rounded-md px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
+        <option value="all">Semua Status</option>
+        <option value="pending">Pending</option>
+        <option value="settlement">Sudah Dibayar (Settlement/Paid)</option>
+    </select>
+
+    <!-- Tombol Muat Ulang yang Lama -->
+    <button id="refresh-btn" class="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">
+        Muat Ulang Data
+    </button>
+</div>
+            <button id="refresh-btn" class="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 transition shadow-sm">
+                Refresh
+            </button>
+        </div>
+
+        <!-- Widget Statistik -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <p class="text-xs font-medium text-gray-500 uppercase">Pendapatan Bulan Ini</p>
+        <p id="stat-revenue" class="text-2xl font-bold text-gray-800 mt-1">Rp 0</p>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <p class="text-xs font-medium text-gray-500 uppercase">Pesanan Pending</p>
+        <p id="stat-pending" class="text-2xl font-bold text-yellow-600 mt-1">0</p>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+        <p class="text-xs font-medium text-gray-500 uppercase">Pesanan Berhasil</p>
+        <p id="stat-success" class="text-2xl font-bold text-green-600 mt-1">0</p>
+    </div>
+</div>
+
+        <!-- Container Tabel -->
+        <div class="bg-white overflow-x-auto shadow-sm border border-gray-200 rounded-lg">
+            <table class="min-w-full text-left text-sm whitespace-nowrap">
+                <thead class="border-b bg-gray-50 font-semibold text-gray-700">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">Order ID</th>
+                        <th scope="col" class="px-6 py-4">Waktu</th>
+                        <th scope="col" class="px-6 py-4">Total Harga</th>
+                        <th scope="col" class="px-6 py-4">Status</th>
+                        <th scope="col" class="px-6 py-4 text-center">Detail Pesanan</th>
+                    </tr>
+                </thead>
+                <tbody id="order-table-body" class="divide-y divide-gray-100">
+                    <!-- Status loading awal -->
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                            Memuat data pesanan dari Supabase...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Panggil admin.js (satu folder dengan file HTML ini) -->
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

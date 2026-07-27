@@ -15,12 +15,12 @@ module.exports = async (req, res) => {
   try {
     // Inisialisasi Snap Midtrans
     let snap = new midtransClient.Snap({
-      isProduction: false, // Kita set false karena masih pakai mode Sandbox (Testing)
-      serverKey: process.env.MIDTRANS_SERVER_KEY // Ini brankas rahasia buat Server Key lu
+      isProduction: false, // Mode Sandbox (Testing)
+      serverKey: process.env.MIDTRANS_SERVER_KEY 
     });
 
     // Menangkap data yang dikirim dari cart.js (frontend)
-    const { order_id, gross_amount, items, customer_details } = req.body;
+    const { order_id, gross_amount, items, customer_details, alamat_pengiriman } = req.body;
 
     // Menyusun parameter sesuai standar Midtrans
     let parameter = {
@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
     // Meminta token pembayaran dari Midtrans
     const transaction = await snap.createTransaction(parameter);
 
-    // === Simpan Data Pesanan ke Supabase ===
+    // === Simpan Data Pesanan & Pengiriman ke Supabase ===
     const { data, error } = await supabase
       .from('orders')
       .insert([
@@ -43,16 +43,19 @@ module.exports = async (req, res) => {
           order_id: order_id,
           total_price: gross_amount,
           items: items,
-          payment_status: 'pending' // Status awal sebelum dibayar
+          payment_status: 'pending',
+          customer_name: customer_details.first_name, 
+          customer_phone: customer_details.phone,     
+          shipping_address: alamat_pengiriman         
         }
       ]);
 
-    // Kalau ada error saat nyimpen ke database, kita catat di log Vercel
+    // Kalau ada error saat nyimpen ke database, catat di log Vercel
     if (error) {
       console.error("Gagal simpan ke Supabase:", error.message);
     }
 
-    // Mengirim token kembali ke frontend untuk nampilin pop-up pembayaran
+    // Mengirim token kembali ke frontend untuk pop-up pembayaran
     return res.status(200).json({ token: transaction.token });
 
   } catch (error) {

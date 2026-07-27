@@ -86,8 +86,7 @@ function calculateTotals(cart) {
     document.getElementById('cart-total').innerText = `IDR ${total.toLocaleString('id-ID')}`;
 }
 
-// 6. Fungsi pas tombol Checkout ditekan
-// 6. Fungsi pas tombol Checkout ditekan (Di-update untuk Midtrans)
+// 6. Fungsi pas tombol Checkout ditekan (Di-update untuk Midtrans + Form Pengiriman)
 async function goToCheckout() {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     
@@ -97,19 +96,30 @@ async function goToCheckout() {
         return;
     }
 
+    // Ambil nilai form pengiriman
+    const namaPelanggan = document.getElementById('customerName').value.trim();
+    const noWa = document.getElementById('customerPhone').value.trim();
+    const alamat = document.getElementById('customerAddress').value.trim();
+
+    // Validasi form gak boleh kosong
+    if (!namaPelanggan || !noWa || !alamat) {
+        alert("Please fill in your Shipping Information first!");
+        return;
+    }
+
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
     // 6a. Siapin data total harga
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const orderId = "ORDER-" + new Date().getTime(); // Bikin ID pesanan unik pakai waktu
+    const orderId = "ORDER-" + new Date().getTime(); 
 
-    // 6b. Susun data barang sesuai format yang diminta API payment.js
+    // 6b. Susun data barang sesuai format yang diminta API
     const itemDetails = cart.map(item => ({
-        id: "ITEM-" + Math.floor(Math.random() * 1000), // Bikin ID barang random
+        id: "ITEM-" + Math.floor(Math.random() * 1000), 
         price: item.price,
         quantity: item.qty,
-        name: item.name.substring(0, 50) // Nama maksimal 50 karakter buat Midtrans
+        name: item.name.substring(0, 50) 
     }));
 
     try {
@@ -119,16 +129,21 @@ async function goToCheckout() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            // Kirim data order_id, gross_amount, items, dll yang dibutuhin API
             body: JSON.stringify({
                 order_id: orderId,
                 gross_amount: total,
                 items: itemDetails,
                 customer_details: {
-                    first_name: "Customer", // Nanti ini bisa diubah kalau lu udah bikin form input nama
-                    email: "customer@example.com",
-                    phone: "08123456789"
-                }
+                    first_name: namaPelanggan,
+                    email: "customer@example.com", 
+                    phone: noWa,               
+                    shipping_address: {        
+                        first_name: namaPelanggan,
+                        phone: noWa,
+                        address: alamat
+                    }
+                },
+                alamat_pengiriman: alamat 
             })
         });
 
@@ -142,7 +157,6 @@ async function goToCheckout() {
                 onSuccess: function(result){
                     alert("Pembayaran Berhasil!"); 
                     console.log(result);
-                    // Hapus isi keranjang kalau udah sukses bayar
                     localStorage.removeItem('shoppingCart');
                     loadCart(); 
                 },
@@ -163,10 +177,12 @@ async function goToCheckout() {
             alert("Sistem pembayaran lagi sibuk bro.");
         }
     } catch (error) {
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
         console.error("Ada error koneksi:", error);
         alert("Gagal nyambung ke server!");
     }
 }
+
 // 7. Jalankan fungsi loadCart saat halaman cart.html dibuka
 window.addEventListener("DOMContentLoaded", () => {
     loadCart();
