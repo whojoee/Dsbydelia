@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DS by. Delia Septianti - Search</title>
+    <!-- Tambahan Font Biar Rapi -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <style>
         /* --- Core Reset & Font Setup --- */
         * {
@@ -24,7 +27,7 @@
 
         .container {
             width: 100%;
-            max-width: 480px; /* Standar mobile kontainer lu */
+            max-width: 480px; 
             background-color: #faf8f5;
             min-height: 100vh;
             display: flex;
@@ -42,7 +45,7 @@
         }
 
         .main-logo {
-            height: 45px;          /* Menyesuaikan tinggi logo agar pas */
+            height: 45px;          
             width: auto;
             object-fit: contain;
         }
@@ -54,7 +57,6 @@
             cursor: pointer;
         }
 
-        /* Tombol Back Arrow Kiri */
         .back-arrow {
             width: 65px;
             height: 1px;
@@ -80,48 +82,89 @@
 
         /* --- Search Container --- */
         .search-wrapper {
-            padding: 40px 15px;
+            padding: 40px 15px 20px 15px;
             width: 100%;
             position: relative;
         }
 
-        /* Input Form Bergaya Minimalis */
         .search-input {
             width: 100%;
-            padding: 12px 90px 12px 5px; /* Kasih padding kanan biar teks input gak tabrakan ama placeholder */
+            padding: 12px 90px 12px 5px; 
             font-size: 16px;
             background-color: transparent;
             border: none;
-            border-bottom: 2px solid #333333; /* Garis bawah hitam tebal sesuai mockup */
+            border-bottom: 2px solid #333333; 
             outline: none;
             color: #333333;
             letter-spacing: 1px;
         }
 
-        /* Teks Custom "• Search" di Ujung Kanan */
         .search-placeholder-text {
             position: absolute;
             right: 20px;
-            top: 50%;
+            top: 55%;
             transform: translateY(-50%);
             font-size: 14px;
             font-weight: 500;
             color: #000000;
             letter-spacing: 1px;
-            pointer-events: none; /* Biar kalau teksnya gak sengaja keklik, tetep bisa ngetik */
+            pointer-events: none; 
+        }
+
+        /* --- TAMPILAN HASIL PENCARIAN (Product Grid) --- */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 0 15px;
+            width: 100%;
+        }
+        .product-item {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .product-img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            background-color: #eee;
+        }
+        .product-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .product-price {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+        .product-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 15px;
+            color: #666;
+            width: 100%;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        
         <!-- HEADER -->
         <header>
-            <!-- Logo berupa file foto, tinggal arahin src ke file foto lu -->
             <img src="Imageds/DS LOGO HORIZONTAL.png" alt="DS Logo" class="main-logo">
-            
-            <!-- Tombol Panah Balik ke Halaman Utama Aman Anti Layar Hitam -->
             <a href="index.html" class="back-link">
                 <div class="back-arrow"></div>
             </a>
@@ -129,25 +172,107 @@
 
         <!-- SEARCH BOX SECTION -->
         <div class="search-wrapper">
-            <input type="text" class="search-input" id="searchField">
+            <input type="text" class="search-input" id="searchField" autocomplete="off">
             <span class="search-placeholder-text" id="placeholderText">• Search</span>
+        </div>
+
+        <!-- SEARCH RESULTS CONTAINER -->
+        <div id="searchResults" class="product-grid">
+            <!-- Data dari Supabase akan dirender kesini -->
         </div>
 
     </div>
 
-    <!-- Sedikit JavaScript biar tulisan "• Search" ilang otomatis pas user mulai ngetik -->
+    <!-- Panggil CDN Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Setup Supabase (Ganti nama variabel biar gak bentrok)
+        const SUPABASE_URL = 'https://krnaolsztrnesmymbmmu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybmFvbHN6dHJuZXNteW1ibW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTk0NDMsImV4cCI6MjA5OTg3NTQ0M30.ddZAXArx9A97-nhxw9d7_Xwur3jBq_jhquZEvti-AP8';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         const searchField = document.getElementById('searchField');
         const placeholderText = document.getElementById('placeholderText');
+        const searchResults = document.getElementById('searchResults');
+        
+        let typingTimer;
+        const doneTypingInterval = 500; // Delay 0.5 detik nunggu ngetik kelar
 
+        // Listener saat user ngetik di form search
         searchField.addEventListener('input', function() {
+            // UI tulisan "• Search" ilang otomatis pas ngetik
             if (this.value.length > 0) {
                 placeholderText.style.display = 'none';
             } else {
                 placeholderText.style.display = 'block';
             }
-        });
-    </script>
 
-</body>
-</html>
+            // Hapus timer sebelumnya kalo user masih ngetik
+            clearTimeout(typingTimer);
+            
+            const query = this.value.trim();
+
+            if (query.length > 0) {
+                searchResults.innerHTML = '<div class="empty-state animate-pulse">Sedang mencari...</div>';
+                searchResults.classList.remove('product-grid'); // Lepas grid pas nampilin teks loading
+                
+                // Mulai timer baru
+                typingTimer = setTimeout(() => {
+                    performSearch(query);
+                }, doneTypingInterval);
+            } else {
+                searchResults.innerHTML = ''; 
+                searchResults.classList.add('product-grid');
+            }
+        });
+
+        // Fungsi narik data dari database Supabase
+        async function performSearch(query) {
+            try {
+                // PANGGIL PAKAI supabaseClient
+                const { data: products, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .ilike('name', `%${query}%`) // ilike: Cari nama yg mirip, gak peduli huruf besar/kecil
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (products && products.length > 0) {
+                    searchResults.classList.add('product-grid'); // Pasang mode grid
+                    searchResults.innerHTML = products.map(p => {
+                        const formattedPrice = new Intl.NumberFormat('id-ID', {
+                            style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+                        }).format(p.price);
+
+                        // Perbaikan path gambar biar aman
+                        let finalImageUrl = 'https://placehold.co/300x400?text=No+Photo'; 
+                        if (p.image_url) {
+                            if (p.image_url.startsWith('http')) {
+                                finalImageUrl = p.image_url;
+                            } else {
+                                finalImageUrl = p.image_url; // Karena ini di root index, nggak butuh ../
+                            }
+                        }
+
+                        return `
+                            <div class="product-item">
+                                <a href="Productview/detail.html?id=${p.id}" class="product-link">
+                                    <img class="product-img" src="${finalImageUrl}" alt="${p.name}" onerror="this.onerror=null;this.src='https://placehold.co/300x400?text=No+Photo';">
+                                    <div class="product-name">${p.name}</div>
+                                    <div class="product-price">${formattedPrice}</div>
+                                </a>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    searchResults.classList.remove('product-grid');
+                    searchResults.innerHTML = `<div class="empty-state">Yah, produknya "<b>${query}</b>" gak ada ni. Coba kata kunci lain.</div>`;
+                }
+            } catch (err) {
+                console.error("Gagal cari produk:", err.message);
+                searchResults.classList.remove('product-grid');
+                searchResults.innerHTML = `<div class="empty-state text-red-500">Ada gangguan server pas nyari barang.</div>`;
+            }
+        }
+    </script>

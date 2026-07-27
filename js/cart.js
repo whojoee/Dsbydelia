@@ -1,3 +1,29 @@
+// ==========================================
+// 0. SISTEM NOTIFIKASI CANTIK (TAILWIND)
+// ==========================================
+function showToast(message, type = 'success') {
+    let container = document.getElementById('ds-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'ds-toast-container';
+        container.className = 'fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-black' : (type === 'warning' ? 'bg-yellow-600' : 'bg-red-600');
+    toast.className = `px-6 py-3 rounded shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${bgColor} text-white font-medium text-sm flex items-center gap-2 pointer-events-auto`;
+    toast.innerHTML = `<span>${message}</span>`;
+    
+    container.appendChild(toast);
+
+    setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10);
+    setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000); 
+}
+
 // 1. Fungsi buat update angka keranjang di Navbar
 function updateBagCounter() {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
@@ -11,7 +37,6 @@ function loadCart() {
     const cartContainer = document.getElementById('cart-items-container');
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
 
-    // Kalau keranjang kosong
     if (cart.length === 0) {
         cartContainer.innerHTML = `
             <div class="empty-cart">
@@ -19,12 +44,11 @@ function loadCart() {
                 <a href="index.html">Return Shopping <- </a>
             </div>
         `;
-        document.querySelector('.cart-summary').style.display = 'none'; // Sembunyikan summary
+        document.querySelector('.cart-summary').style.display = 'none'; 
         updateBagCounter();
         return;
     }
 
-    // Kalau ada isinya, munculin ringkasan harga dan render itemnya
     document.querySelector('.cart-summary').style.display = 'block';
     
     cartContainer.innerHTML = cart.map((item, index) => `
@@ -59,12 +83,10 @@ function updateQty(index, change) {
     if (cart[index]) {
         cart[index].qty += change;
         
-        // Kalau jumlahnya 0, otomatis hapus barang dari keranjang
         if (cart[index].qty <= 0) {
             cart.splice(index, 1); 
         }
         
-        // Simpan data terbaru ke localStorage dan render ulang
         localStorage.setItem('shoppingCart', JSON.stringify(cart));
         loadCart(); 
     }
@@ -73,7 +95,7 @@ function updateQty(index, change) {
 // 4. Fungsi buat tombol Remove
 function removeItem(index) {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
-    cart.splice(index, 1); // Hapus 1 data di posisi index tersebut
+    cart.splice(index, 1); 
     localStorage.setItem('shoppingCart', JSON.stringify(cart));
     loadCart();
 }
@@ -86,35 +108,30 @@ function calculateTotals(cart) {
     document.getElementById('cart-total').innerText = `IDR ${total.toLocaleString('id-ID')}`;
 }
 
-// 6. Fungsi pas tombol Checkout ditekan (Di-update untuk Midtrans + Form Pengiriman)
+// 6. Fungsi pas tombol Checkout ditekan
 async function goToCheckout() {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     
-    // Cek kalau keranjang kosong
     if (cart.length === 0) {
-        alert("Shopping Cart Is Empty!");
+        showToast("Shopping Cart Is Empty!", "error");
         return;
     }
 
-    // Ambil nilai form pengiriman
     const namaPelanggan = document.getElementById('customerName').value.trim();
     const noWa = document.getElementById('customerPhone').value.trim();
     const alamat = document.getElementById('customerAddress').value.trim();
 
-    // Validasi form gak boleh kosong
     if (!namaPelanggan || !noWa || !alamat) {
-        alert("Please fill in your Shipping Information first!");
+        showToast("Please fill in your Shipping Information first!", "error");
         return;
     }
 
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
-    // 6a. Siapin data total harga
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const orderId = "ORDER-" + new Date().getTime(); 
 
-    // 6b. Susun data barang sesuai format yang diminta API
     const itemDetails = cart.map(item => ({
         id: "ITEM-" + Math.floor(Math.random() * 1000), 
         price: item.price,
@@ -123,7 +140,6 @@ async function goToCheckout() {
     }));
 
     try {
-        // 6c. Tembak API Vercel lu pakai POST
         const response = await fetch('/api/payment', {
             method: 'POST',
             headers: {
@@ -151,39 +167,37 @@ async function goToCheckout() {
 
         if (loadingOverlay) loadingOverlay.style.display = 'none';
 
-        // 6d. Munculin Popup Midtrans kalau dapet token
         if (data.token) {
             window.snap.pay(data.token, {
                 onSuccess: function(result){
-                    alert("Pembayaran Berhasil!"); 
+                    showToast("Pembayaran Berhasil!", "success"); 
                     console.log(result);
                     localStorage.removeItem('shoppingCart');
                     loadCart(); 
                 },
                 onPending: function(result){
-                    alert("Menunggu Pembayaran!"); 
+                    showToast("Menunggu Pembayaran!", "warning"); 
                     console.log(result);
                 },
                 onError: function(result){
-                    alert("Pembayaran Gagal!"); 
+                    showToast("Pembayaran Gagal!", "error"); 
                     console.log(result);
                 },
                 onClose: function(){
-                    alert('Continue the payment!');
+                    showToast("Continue the payment!", "warning");
                 }
             });
         } else {
             console.error("Token gagal didapat:", data);
-            alert("Sistem pembayaran lagi sibuk bro.");
+            showToast("Sistem pembayaran lagi sibuk bro.", "error");
         }
     } catch (error) {
         if (loadingOverlay) loadingOverlay.style.display = 'none';
         console.error("Ada error koneksi:", error);
-        alert("Gagal nyambung ke server!");
+        showToast("Gagal nyambung ke server!", "error");
     }
 }
 
-// 7. Jalankan fungsi loadCart saat halaman cart.html dibuka
 window.addEventListener("DOMContentLoaded", () => {
     loadCart();
 });
