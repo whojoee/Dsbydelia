@@ -42,38 +42,35 @@
             </div>
 
             <div class="flex space-x-3">
-    <!-- Dropdown Filter Baru -->
-    <select id="status-filter" class="border border-gray-300 rounded-md px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
-        <option value="all">Semua Status</option>
-        <option value="pending">Pending</option>
-        <option value="settlement">Sudah Dibayar (Settlement/Paid)</option>
-    </select>
+                <!-- Dropdown Filter Baru -->
+                <select id="status-filter" class="border border-gray-300 rounded-md px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
+                    <option value="all">Semua Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="settlement">Sudah Dibayar (Settlement/Paid)</option>
+                </select>
 
-    <!-- Tombol Muat Ulang yang Lama -->
-    <button id="refresh-btn" class="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">
-        Muat Ulang Data
-    </button>
-</div>
-            <button id="refresh-btn" class="bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 transition shadow-sm">
-                Refresh
-            </button>
+                <!-- Tombol Muat Ulang -->
+                <button id="refresh-btn" class="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition shadow-sm">
+                    Refresh
+                </button>
+            </div>
         </div>
 
         <!-- Widget Statistik -->
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <p class="text-xs font-medium text-gray-500 uppercase">Pendapatan Bulan Ini</p>
-        <p id="stat-revenue" class="text-2xl font-bold text-gray-800 mt-1">Rp 0</p>
-    </div>
-    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <p class="text-xs font-medium text-gray-500 uppercase">Pesanan Pending</p>
-        <p id="stat-pending" class="text-2xl font-bold text-yellow-600 mt-1">0</p>
-    </div>
-    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <p class="text-xs font-medium text-gray-500 uppercase">Pesanan Berhasil</p>
-        <p id="stat-success" class="text-2xl font-bold text-green-600 mt-1">0</p>
-    </div>
-</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                <p class="text-xs font-medium text-gray-500 uppercase">Pendapatan Bulan Ini</p>
+                <p id="stat-revenue" class="text-2xl font-bold text-gray-800 mt-1">Rp 0</p>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                <p class="text-xs font-medium text-gray-500 uppercase">Pesanan Pending</p>
+                <p id="stat-pending" class="text-2xl font-bold text-yellow-600 mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                <p class="text-xs font-medium text-gray-500 uppercase">Pesanan Berhasil</p>
+                <p id="stat-success" class="text-2xl font-bold text-green-600 mt-1">0</p>
+            </div>
+        </div>
 
         <!-- Container Tabel -->
         <div class="bg-white overflow-x-auto shadow-sm border border-gray-200 rounded-lg">
@@ -97,6 +94,40 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Container Form Tambah Produk Baru -->
+        <!-- Container Form Tambah Produk Baru dengan Upload Foto -->
+<div class="bg-white p-6 shadow-sm border border-gray-200 rounded-lg mt-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Tambah Produk Baru</h2>
+    <form id="addProductForm" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label for="productName" class="block text-sm font-medium text-gray-700 mb-1">Nama Produk</label>
+                <input type="text" id="productName" required placeholder="Contoh: Kemeja Flanel" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+            </div>
+            <div>
+                <label for="productPrice" class="block text-sm font-medium text-gray-700 mb-1">Harga (Angka saja)</label>
+                <input type="number" id="productPrice" required placeholder="Contoh: 150000" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+            </div>
+            <div>
+                <label for="productCategory" class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <select id="productCategory" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                    <option value="all_product">All Product</option>
+                    <option value="best_seller">Best Seller</option>
+                </select>
+            </div>
+            <div>
+                <label for="productImageFile" class="block text-sm font-medium text-gray-700 mb-1">Upload Foto Produk</label>
+                <input type="file" id="productImageFile" accept="image/*" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
+            </div>
+        </div>
+        <div class="flex justify-end mt-4">
+            <button type="submit" id="submitProductBtn" class="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition">
+                Tambah Produk
+            </button>
+        </div>
+    </form>
+</div>
     </main>
 
     <!-- Panggil admin.js (satu folder dengan file HTML ini) -->

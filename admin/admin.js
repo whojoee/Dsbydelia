@@ -242,3 +242,83 @@ refreshBtn.addEventListener('click', fetchOrders);
 if (statusFilter) {
     statusFilter.addEventListener('change', renderTable);
 }
+
+// ==========================================
+// KODE LOGIKA TAMBAH PRODUK
+// ==========================================
+
+// Menangkap form tambah produk
+// ==========================================
+// KODE LOGIKA TAMBAH PRODUK + UPLOAD FOTO
+// ==========================================
+const addProductForm = document.getElementById('addProductForm');
+const submitProductBtn = document.getElementById('submitProductBtn');
+
+if (addProductForm) {
+    addProductForm.addEventListener('submit', async function(e) {
+        e.preventDefault(); 
+
+        const originalBtnText = submitProductBtn.innerText;
+        submitProductBtn.innerText = 'Mengupload foto...';
+        submitProductBtn.disabled = true;
+
+        const name = document.getElementById('productName').value;
+        const price = document.getElementById('productPrice').value;
+        const category = document.getElementById('productCategory').value;
+        const imageFileinput = document.getElementById('productImageFile');
+        const file = imageFileinput.files[0];
+
+        try {
+            if (!file) {
+                throw new Error('Pilih foto produk terlebih dahulu!');
+            }
+
+            // 1. Buat nama file yang unik biar nggak bentrok
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            submitProductBtn.innerText = 'Mengupload foto...';
+
+            // 2. Upload file ke Supabase Storage (bucket: product-images)
+            const { error: uploadError } = await supabase.storage
+                .from('product-images')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 3. Ambil Public URL dari file yang baru di-upload
+            const { data: publicURLData } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+            const publicImageUrl = publicURLData.publicUrl;
+
+            submitProductBtn.innerText = 'Menyimpan data...';
+
+            // 4. Masukkan data produk ke tabel 'products'
+            const { error: insertError } = await supabase
+                .from('products')
+                .insert([
+                    { 
+                        name: name, 
+                        price: parseInt(price), 
+                        category: category, 
+                        image_url: publicImageUrl 
+                    }
+                ]);
+
+            if (insertError) throw insertError;
+
+            alert('Produk berhasil ditambahkan.');
+            addProductForm.reset();
+
+        } catch (error) {
+            console.error('Gagal tambah produk:', error.message);
+            alert('Waduh, gagal nambah produk nih: ' + error.message);
+        } finally {
+            submitProductBtn.innerText = originalBtnText;
+            submitProductBtn.disabled = false;
+        }
+    });
+}
