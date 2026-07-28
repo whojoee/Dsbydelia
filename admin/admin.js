@@ -97,8 +97,8 @@ function renderTable() {
     let filteredOrders = allOrders;
     if (filterValue === 'pending') {
         filteredOrders = allOrders.filter(o => o.payment_status === 'pending');
-    } else if (filterValue === 'settlement') {
-        filteredOrders = allOrders.filter(o => o.payment_status === 'settlement' || o.payment_status === 'paid');
+    } else if (filterValue === 'SETTLEMENT' || filterValue === 'paid') {
+        filteredOrders = allOrders.filter(o => o.payment_status === 'SETTLEMENT' || o.payment_status === 'paid');
     }
 
     if (!filteredOrders || filteredOrders.length === 0) {
@@ -119,7 +119,7 @@ function renderTable() {
         });
 
         let statusColor = 'bg-yellow-100 text-yellow-800 border-yellow-200'; 
-        if (order.payment_status === 'settlement' || order.payment_status === 'paid') {
+        if (order.payment_status === 'SETTLEMENT' || order.payment_status === 'paid') {
             statusColor = 'bg-green-100 text-green-800 border-green-200';
         } else if (order.payment_status === 'expire' || order.payment_status === 'cancel') {
             statusColor = 'bg-red-100 text-red-800 border-red-200';
