@@ -14,10 +14,11 @@ export default async function handler(req, res) {
             const orderId = midtransData.order_id;
 
             // 1. Koneksi ke Supabase buat nyari data pelanggan
-            const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+            const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
             
             const { data: orderData, error } = await supabase
                 .from('orders')
+                .update({ payment_status: 'SETTLEMENT' })
                 .select('customer_name, customer_phone, total_price')
                 .eq('order_id', orderId)
                 .single();
