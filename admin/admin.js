@@ -156,7 +156,7 @@ function renderStats() {
     let successCount = 0;
 
     allOrders.forEach(order => {
-        const isPaid = order.payment_status === 'settlement' || order.payment_status === 'paid';
+        const isPaid = order.payment_status === 'SETTLEMENT' || order.payment_status === 'paid';
         const isPending = order.payment_status === 'pending';
 
         if (isPaid) {
