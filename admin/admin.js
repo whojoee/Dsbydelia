@@ -247,6 +247,15 @@ window.showDetail = function(orderId) {
                 <p class="mb-1"><strong>No. WA:</strong> ${order.customer_phone || '-'}</p>
                 <p><strong>Alamat:</strong> ${order.shipping_address || '-'}</p>
             </div>
+            
+            <div class="mb-4 p-3 bg-blue-50 rounded-md border border-blue-200 text-sm">
+                <h4 class="font-bold text-blue-800 border-b border-blue-200 pb-1 mb-2">Pengiriman & Resi</h4>
+                <div class="flex gap-2 items-center">
+                    <input type="text" id="input-resi-${order.order_id}" value="${order.resi || ''}" placeholder="Masukkan No. Resi (misal: JX12345)" class="flex-1 px-3 py-2 border rounded text-sm outline-none focus:border-blue-500">
+                    <button onclick="window.kirimResi('${order.order_id}')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition font-medium">Simpan & Kirim WA</button>
+                </div>
+                ${order.resi ? `<p class="mt-2 text-xs text-green-600 font-semibold">✓ Resi sudah tersimpan: ${order.resi}</p>` : ''}
+            </div>
 
             <div class="mb-6">
                 <h4 class="font-semibold text-gray-700 text-sm mb-2">Daftar Produk:</h4>
@@ -272,6 +281,49 @@ window.showDetail = function(orderId) {
         </div>
     `;
     document.body.appendChild(modalBg);
+};
+
+window.kirimResi = async function(orderId) {
+    const inputResi = document.getElementById(`input-resi-${orderId}`).value;
+    
+    if (!inputResi) {
+        showToast('Nomor resi tidak boleh kosong bro!', 'error');
+        return;
+    }
+
+    const btn = event.currentTarget;
+    const originalText = btn.innerText;
+    btn.innerText = 'Mengirim...';
+    btn.disabled = true;
+
+    try {
+        // 1. Simpan resi ke Supabase
+        const { error } = await supabase
+            .from('orders')
+            .update({ resi: inputResi })
+            .eq('order_id', orderId);
+
+        if (error) throw error;
+
+        // 2. Panggil Vercel API untuk ngirim WA
+        const response = await fetch('/api/kirim-resi', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId, resi: inputResi })
+        });
+
+        if (!response.ok) throw new Error('Gagal kirim WA');
+
+        showToast('Resi berhasil disimpan & WA terkirim!');
+        document.getElementById('detail-modal').remove(); 
+        fetchOrders(); // Refresh tabel
+    } catch (error) {
+        console.error('Error resi:', error.message);
+        showToast('Gagal memproses resi. Coba lagi.', 'error');
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 };
 
 // ==========================================
