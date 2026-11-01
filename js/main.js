@@ -17,8 +17,8 @@ async function fetchHomeProducts() {
         const { data: products, error } = await window.supabaseClient.from('products').select('*');
         if (error) throw error;
 
-        const bestSeller = products.filter(p => p.category === 'best_seller').slice(0, 4);
-        const allProducts = products.filter(p => p.category === 'all_product').slice(0, 3);
+        const bestSeller = products.filter(p => p.category === 'Sale').slice(0, 4);
+        const allProducts = products. slice(0, 3);
 
         const bestContainer = document.querySelector('.grid-2x2');
         if (bestContainer && bestSeller.length > 0) {
