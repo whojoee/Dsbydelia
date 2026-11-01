@@ -26,10 +26,10 @@ async function loadCategory() {
         let query = window.supabaseClient.from('products').select('*');
 
         if (type === 'Sale') {
-            pageTitle.innerText = "Sale_Category";
+            pageTitle.innerText = "Sale";
             query = query.eq('category', 'Sale');
         } else {
-            pageTitle.innerText = "Sale";
+            pageTitle.innerText = "All_Product";
         }
 
         const { data: products, error } = await query;
