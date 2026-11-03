@@ -30,7 +30,7 @@ async function loadCategory() {
             pageTitle.innerText = "New Arrival";
             query = query.eq('category', 'New_Arrival');
               
-        } else if (cleanType === 'Sale') {
+        } else if (cleanType === 'sale') { // TYPO FIXED: 'Sale' diubah jadi 'sale'
             pageTitle.innerText = "Sale";
             query = query.eq('category', 'Sale');
         } else {
@@ -41,17 +41,37 @@ async function loadCategory() {
         if (error) throw error;
 
         if (products && products.length > 0) {
-            productList.innerHTML = products.map(p => `
+            productList.innerHTML = products.map(p => {
+                let priceHTML = '';
+
+                // Cek apakah produk ini kategori Sale DAN punya nilai di original_price di database
+                if (p.category === 'Sale' && p.original_price) {
+                    priceHTML = `
+                        <div class="price-container">
+                            <span class="original-price">IDR ${Number(p.original_price).toLocaleString('id-ID')}</span>
+                            <span class="sale-price">IDR ${Number(p.price || 0).toLocaleString('id-ID')}</span>
+                        </div>
+                    `;
+                } else {
+                    // Tampilan default untuk produk tanpa harga coret
+                    priceHTML = `<div class="product-price">IDR ${Number(p.price || 0).toLocaleString('id-ID')}</div>`;
+                }
+
+                return `
                 <div class="product-item">
                      <a href="Productview/detail.html?id=${p.id}" class="Product-link">
                         <img class="product-img" src="${p.image_url}" alt="${p.name}">
                         <div class="product-info">
                             <div class="product-name">${p.name}</div>
-                            <div class="product-price">IDR ${Number(p.price).toLocaleString('id-ID')}</div>
+                            
+                            <!-- Harga dirender otomatis pakai kondisi di atas -->
+                            ${priceHTML}
+                            
                         </div>
                      </a>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         } else {
             productList.innerHTML = "<p>Belum ada produk di kategori ini bro.</p>";
         }
