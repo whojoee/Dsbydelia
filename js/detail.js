@@ -54,6 +54,35 @@ async function loadDetail() {
         if (nameEl) nameEl.innerText = data.name;
         if (priceEl) priceEl.innerText = `IDR ${Number(data.price).toLocaleString('id-ID')}`;
         
+        // 1. Tampilkan Deskripsi (Membaca kolom 'Deskripsi' dari Supabase)
+        const descEl = document.getElementById('product-desc');
+        if (descEl) {
+            descEl.innerText = data.Deskripsi || "Deskripsi produk belum tersedia.";
+        }
+
+        // 2. Bikin Dropdown Warna Dinamis (Membaca kolom 'Warna' dari Supabase)
+        const colorSelect = document.getElementById('colorPicker');
+        if (colorSelect) {
+            colorSelect.innerHTML = '<option value="" disabled selected>Pilih Warna</option>';
+            
+            if (data.Warna) {
+                // Pisahkan warna dengan koma
+                const colorArray = data.Warna.split(','); 
+                
+                colorArray.forEach(color => {
+                    const colorName = color.trim();
+                    const option = document.createElement('option');
+                    option.value = colorName;
+                    option.innerText = colorName;
+                    colorSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = "";
+                option.innerText = "Warna tidak tersedia";
+                colorSelect.appendChild(option);
+            }
+        }
         const sliderContainer = document.getElementById('imageSlider');
         const dotsContainer = document.getElementById('sliderDots');
 
@@ -123,9 +152,9 @@ async function loadDetail() {
 
 // Logika Tambah ke Keranjang
 document.getElementById('addToCartBtn')?.addEventListener('click', () => {
-    const size = document.getElementById('sizePicker').value;
-    if (!size) {
-        showToast("Pick Your Size First!", "error");
+    const color = document.getElementById('colorPicker').value;
+    if (!color) {
+        showToast("Pick Your Color First!", "error");
         return;
     }
     
