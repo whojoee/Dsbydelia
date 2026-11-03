@@ -48,7 +48,6 @@ async function fetchHomeProducts() {
                         <img class="product-img" src="${p.image_url}" alt="${p.name}">
                         <div class="product-info">
                             <div class="product-name">${p.name}</div>
-                            <div class="product-price">IDR ${Number(p.price || 0).toLocaleString('id-ID')}</div>
                         
                             <div class="price-container">
                                 <span class="original-price">IDR ${Number(p.original_price || 0).toLocaleString('id-ID')}</span>
