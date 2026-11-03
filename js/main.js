@@ -17,11 +17,14 @@ async function fetchHomeProducts() {
         const { data: products, error } = await window.supabaseClient.from('products').select('*');
         if (error) throw error;
 
-        const newArrival = products.filter(p => p.category === 'New Arrival').slice(0, 4);
+        // Filter data berdasarkan category dari Supabase
+        const newArrival = products.filter(p => p.category === 'New_Arrival').slice(0, 4);
         const bestSeller = products.filter(p => p.category === 'Sale').slice(0, 3);
-        const allProducts = products. slice(0, 3);
+        const shuffled = [...products].sort(() => 0.5 - Math.random());
+        const allProducts = shuffled.slice(0, 3);
 
-        const newArrivalContainer = document.querySelector('newarrival-grid');
+        // 1. Render New Arrival (Target ID: newarrival-grid)
+        const newArrivalContainer = document.getElementById('newarrival-grid');
         if (newArrivalContainer && newArrival.length > 0) {
             newArrivalContainer.innerHTML = newArrival.map(p => `
                 <div class="grid-item">
@@ -29,14 +32,15 @@ async function fetchHomeProducts() {
                         <img class="product-img" src="${p.image_url}" alt="${p.name}">
                         <div class="product-info">
                             <div class="product-name">${p.name}</div>
-                            <div class="product-price">IDR ${Number(p.price).toLocaleString('id-ID')}</div>
+                            <div class="product-price">IDR ${Number(p.price || 0).toLocaleString('id-ID')}</div>
                         </div>
                     </a>
                 </div>
             `).join('');
         }
 
-        const bestContainer = document.querySelector('.grid-2x2');
+        // 2. Render Sale (Target ID: bestseller-grid)
+        const bestContainer = document.getElementById('bestseller-grid');
         if (bestContainer && bestSeller.length > 0) {
             bestContainer.innerHTML = bestSeller.map(p => `
                 <div class="grid-item">
@@ -44,14 +48,15 @@ async function fetchHomeProducts() {
                         <img class="product-img" src="${p.image_url}" alt="${p.name}">
                         <div class="product-info">
                             <div class="product-name">${p.name}</div>
-                            <div class="product-price">IDR ${Number(p.price).toLocaleString('id-ID')}</div>
+                            <div class="product-price">IDR ${Number(p.price || 0).toLocaleString('id-ID')}</div>
                         </div>
                     </a>
                 </div>
             `).join('');
         }
 
-        const allContainer = document.querySelector('.grid-1x3');
+        // 3. Render All Products (Target ID: allproudct-grid sesuai HTML)
+        const allContainer = document.getElementById('allproudct-grid');
         if (allContainer && allProducts.length > 0) {
             allContainer.innerHTML = allProducts.map(p => `
                 <div class="grid-item">
@@ -59,14 +64,14 @@ async function fetchHomeProducts() {
                         <img class="product-img" src="${p.image_url}" alt="${p.name}">
                         <div class="product-info">
                             <div class="product-name">${p.name}</div>
-                            <div class="product-price">IDR ${Number(p.price).toLocaleString('id-ID')}</div>
+                            <div class="product-price">IDR ${Number(p.price || 0).toLocaleString('id-ID')}</div>
                         </div>
                     </a>
                 </div>
             `).join('');
         }
     } catch (err) {
-        console.error('Gagal ngambil data:', err.message);
+        console.error('Gagal mengambil data:', err.message);
     }
 }
 

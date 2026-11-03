@@ -24,16 +24,17 @@ async function loadCategory() {
     try {
         // Panggil menggunakan window.supabaseClient
         let query = window.supabaseClient.from('products').select('*');
+        const cleanType = type.toLowerCase().replace(/_/g, '');
 
-        if (type.toLocaleLowerCase()=== 'newarrival') {
+        if (cleanType === 'newarrival') {
             pageTitle.innerText = "New Arrival";
-            query = query.eq('category', 'New Arrival');
-        }      
-        if (type === 'Sale') {
+            query = query.eq('category', 'New_Arrival');
+              
+        } else if (cleanType === 'Sale') {
             pageTitle.innerText = "Sale";
             query = query.eq('category', 'Sale');
         } else {
-            pageTitle.innerText = "All_Product";
+            pageTitle.innerText = "All Product";
         }
 
         const { data: products, error } = await query;
