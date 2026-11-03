@@ -25,6 +25,10 @@ async function loadCategory() {
         // Panggil menggunakan window.supabaseClient
         let query = window.supabaseClient.from('products').select('*');
 
+        if (type.toLocaleLowerCase()=== 'newarrival') {
+            pageTitle.innerText = "New Arrival";
+            query = query.eq('category', 'New Arrival');
+        }      
         if (type === 'Sale') {
             pageTitle.innerText = "Sale";
             query = query.eq('category', 'Sale');

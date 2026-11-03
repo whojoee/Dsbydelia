@@ -17,8 +17,24 @@ async function fetchHomeProducts() {
         const { data: products, error } = await window.supabaseClient.from('products').select('*');
         if (error) throw error;
 
-        const bestSeller = products.filter(p => p.category === 'Sale').slice(0, 4);
+        const newArrival = products.filter(p => p.category === 'New Arrival').slice(0, 4);
+        const bestSeller = products.filter(p => p.category === 'Sale').slice(0, 3);
         const allProducts = products. slice(0, 3);
+
+        const newArrivalContainer = document.querySelector('newarrival-grid');
+        if (newArrivalContainer && newArrival.length > 0) {
+            newArrivalContainer.innerHTML = newArrival.map(p => `
+                <div class="grid-item">
+                    <a href="Productview/detail.html?id=${p.id}" class="product-link">
+                        <img class="product-img" src="${p.image_url}" alt="${p.name}">
+                        <div class="product-info">
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-price">IDR ${Number(p.price).toLocaleString('id-ID')}</div>
+                        </div>
+                    </a>
+                </div>
+            `).join('');
+        }
 
         const bestContainer = document.querySelector('.grid-2x2');
         if (bestContainer && bestSeller.length > 0) {
