@@ -2,7 +2,7 @@
 .hero-img-wrapper { width: 55%; }
 .hero-img-wrapper img { width: 100%; height: auto; border: 1px solid #333; display: block; }
 .hero-text-wrapper { width: 45%; }
-.hero-text-wrapper p { font-size: 12px; line-height: 1.6; color: #444; font-style: italic; font-family: 'Playfair Display', serif; }
+.hero-text-wrapper p { font-size: 12px; line-height: 1.6; color: #444; font-style: normal; font-family: 'Courier New', Courier, monospace; }
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .section-link { display: flex; align-items: center; justify-content: space-between; width: 100%; text-decoration: none; color: #333; }
 .section-title { font-size: 14px; font-weight: bold; text-transform: capitalize; letter-spacing: 1px; }
