@@ -108,8 +108,8 @@ function calculateTotals(cart) {
     document.getElementById('cart-total').innerText = `IDR ${total.toLocaleString('id-ID')}`;
 }
 
-// 6. Fungsi pas tombol Checkout ditekan
-async function goToCheckout() {
+// 6. Fungsi pas tombol Checkout ditekan (Langsung ke WhatsApp Admin)
+function goToCheckout() {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     
     if (cart.length === 0) {
@@ -126,76 +126,46 @@ async function goToCheckout() {
         return;
     }
 
-    const loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+    let itemListText = "";
+    let grandTotal = 0;
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const orderId = "ORDER-" + new Date().getTime(); 
+    cart.forEach((item, index) => {
+        const subtotal = Number(item.price) * item.qty;
+        grandTotal += subtotal;
+        
+        const detailVarian = [item.size, item.color].filter(Boolean).join(' - ');
+        const varianText = detailVarian ? ` (${detailVarian})` : '';
 
-    const itemDetails = cart.map(item => ({
-        id: "ITEM-" + Math.floor(Math.random() * 1000), 
-        price: item.price,
-        quantity: item.qty,
-        name: item.name.substring(0, 50) 
-    }));
+        itemListText += `${index + 1}. ${item.name}${varianText}\n`;
+        itemListText += `   Qty: ${item.qty} x IDR ${Number(item.price).toLocaleString('id-ID')} = IDR ${subtotal.toLocaleString('id-ID')}\n`;
+    });
 
-    try {
-        const response = await fetch('/api/payment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                order_id: orderId,
-                gross_amount: total,
-                items: itemDetails,
-                customer_details: {
-                    first_name: namaPelanggan,
-                    email: "customer@example.com", 
-                    phone: noWa,               
-                    shipping_address: {        
-                        first_name: namaPelanggan,
-                        phone: noWa,
-                        address: alamat
-                    }
-                },
-                alamat_pengiriman: alamat 
-            })
-        });
+    const orderId = "DS-" + new Date().getTime().toString().slice(-6);
 
-        const data = await response.json();
+    const pesanWA = `Halo Admin DS by Delia Septianti, saya mau order:\n\n` +
+                    `*No. Order:* #${orderId}\n` +
+                    `*Detail Pesanan:*\n` +
+                    `${itemListText}\n` +
+                    `*Total Produk:* IDR ${grandTotal.toLocaleString('id-ID')}\n` +
+                    `*(Belum termasuk ongkir)*\n\n` +
+                    `*Data Pengiriman:*\n` +
+                    `• Nama: ${namaPelanggan}\n` +
+                    `• No. WA: ${noWa}\n` +
+                    `• Alamat: ${alamat}\n\n` +
+                    `Mohon info ketersediaan stok dan total ongkirnya ya kak. Terima kasih!`;
 
-        if (loadingOverlay) loadingOverlay.style.display = 'none';
+    // GANTI NOMOR DI BAWAH DENGAN NOMOR WA ADMIN (Wajib awalan 62)
+    const adminWhatsApp = "6281285952703"; 
 
-        if (data.token) {
-            window.snap.pay(data.token, {
-                onSuccess: function(result){
-                    showToast("Pembayaran Berhasil!", "success"); 
-                    console.log(result);
-                    localStorage.removeItem('shoppingCart');
-                    loadCart(); 
-                },
-                onPending: function(result){
-                    showToast("Menunggu Pembayaran!", "warning"); 
-                    console.log(result);
-                },
-                onError: function(result){
-                    showToast("Pembayaran Gagal!", "error"); 
-                    console.log(result);
-                },
-                onClose: function(){
-                    showToast("Continue the payment!", "warning");
-                }
-            });
-        } else {
-            console.error("Token gagal didapat:", data);
-            showToast("Sistem pembayaran lagi sibuk bro.", "error");
-        }
-    } catch (error) {
-        if (loadingOverlay) loadingOverlay.style.display = 'none';
-        console.error("Ada error koneksi:", error);
-        showToast("Gagal nyambung ke server!", "error");
-    }
+    const whatsappURL = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(pesanWA)}`;
+
+    showToast("Mengalihkan ke WhatsApp Admin...", "success");
+
+    localStorage.removeItem('shoppingCart');
+
+    setTimeout(() => {
+        window.location.href = whatsappURL;
+    }, 600);
 }
 
 window.addEventListener("DOMContentLoaded", () => {

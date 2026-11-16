@@ -66,7 +66,6 @@ async function loadDetail() {
             colorSelect.innerHTML = '<option value="" disabled selected>Pilih Warna</option>';
             
             if (data.Warna) {
-                // Pisahkan warna dengan koma
                 const colorArray = data.Warna.split(','); 
                 
                 colorArray.forEach(color => {
@@ -83,6 +82,7 @@ async function loadDetail() {
                 colorSelect.appendChild(option);
             }
         }
+
         const sliderContainer = document.getElementById('imageSlider');
         const dotsContainer = document.getElementById('sliderDots');
 
@@ -101,8 +101,9 @@ async function loadDetail() {
                     </div>
                 `;
                 totalImage++;
+            }
 
-            if(data.image_url_3) {
+            if (data.image_url_3) {
                 imagesHTML += `
                     <div class="w-full h-full flex-shrink-0 snap-start">
                         <img src="../${data.image_url_3}" alt="${data.name} Detail 2" class="w-full h-full object-cover">
@@ -124,7 +125,7 @@ async function loadDetail() {
                 sliderContainer.addEventListener('scroll', () => {
                     const scrollPosition = sliderContainer.scrollLeft;
                     const slideWidth = sliderContainer.clientWidth;
-                    const activeIndex = Math.floor(scrollPosition / slideWidth);
+                    const activeIndex = Math.round(scrollPosition / slideWidth);
 
                     const dots = dotsContainer.querySelectorAll('.dot');
                     
@@ -136,13 +137,12 @@ async function loadDetail() {
                             dot.classList.remove('bg-neutral-800');
                             dot.classList.add('bg-neutral-400');
                         }
-                    })
-                })
+                    });
+                });
             } else if (dotsContainer) {
                 dotsContainer.innerHTML = '';
             }
         }
-     }
         
     } catch (err) {
         console.error("Gagal load detail produk:", err.message);
@@ -150,7 +150,7 @@ async function loadDetail() {
     }
 }
 
-// Logika Tambah ke Keranjang
+// Logika Tambah ke Keranjang (Sudah diperbaiki pakai 'color')
 document.getElementById('addToCartBtn')?.addEventListener('click', () => {
     const color = document.getElementById('colorPicker').value;
     if (!color) {
@@ -160,7 +160,7 @@ document.getElementById('addToCartBtn')?.addEventListener('click', () => {
     
     if (currentProduct) {
         let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
-        let item = cart.find(i => i.id === currentProduct.id && i.size === size);
+        let item = cart.find(i => i.id === currentProduct.id && i.color === color);
         
         if (item) {
             item.qty += 1;
@@ -170,7 +170,7 @@ document.getElementById('addToCartBtn')?.addEventListener('click', () => {
                 name: currentProduct.name, 
                 price: currentProduct.price, 
                 image: `../${currentProduct.image_url}`, 
-                size: size, 
+                color: color, 
                 qty: 1 
             });
         }
