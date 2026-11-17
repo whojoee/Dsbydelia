@@ -1,6 +1,12 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
 // ==========================================
-// 0. SISTEM NOTIFIKASI CANTIK (TAILWIND)
+// 0. KONEKSI SUPABASE & NOTIFIKASI
 // ==========================================
+const supabaseUrl = 'https://krnaolsztrnesmymbmmu.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybmFvbHN6dHJuZXNteW1ibW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTk0NDMsImV4cCI6MjA5OTg3NTQ0M30.ddZAXArx9A97-nhxw9d7_Xwur3jBq_jhquZEvti-AP8';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 function showToast(message, type = 'success') {
     let container = document.getElementById('ds-toast-container');
     if (!container) {
@@ -24,7 +30,9 @@ function showToast(message, type = 'success') {
     }, 3000); 
 }
 
-// 1. Fungsi buat update angka keranjang di Navbar
+// ==========================================
+// 1. FUNGSI KERANJANG BELANJA
+// ==========================================
 function updateBagCounter() {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     let totalqty = cart.reduce((sum, item) => sum + item.qty, 0);
@@ -32,7 +40,6 @@ function updateBagCounter() {
     if (baglink) baglink.innerText = `Bag (${totalqty})`;
 }
 
-// 2. Fungsi utama buat nampilin isi keranjang ke layar
 function loadCart() {
     const cartContainer = document.getElementById('cart-items-container');
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
@@ -76,40 +83,36 @@ function loadCart() {
     updateBagCounter();
 }
 
-// 3. Fungsi buat nambah/ngurangin jumlah barang (+ dan -)
-function updateQty(index, change) {
+window.updateQty = function(index, change) {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     
     if (cart[index]) {
         cart[index].qty += change;
-        
         if (cart[index].qty <= 0) {
             cart.splice(index, 1); 
         }
-        
         localStorage.setItem('shoppingCart', JSON.stringify(cart));
         loadCart(); 
     }
-}
+};
 
-// 4. Fungsi buat tombol Remove
-function removeItem(index) {
+window.removeItem = function(index) {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     cart.splice(index, 1); 
     localStorage.setItem('shoppingCart', JSON.stringify(cart));
     loadCart();
-}
+};
 
-// 5. Fungsi buat ngitung dan nampilin Total Harga
 function calculateTotals(cart) {
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    
     document.getElementById('cart-subtotal').innerText = `IDR ${total.toLocaleString('id-ID')}`;
     document.getElementById('cart-total').innerText = `IDR ${total.toLocaleString('id-ID')}`;
 }
 
-// 6. Fungsi pas tombol Checkout ditekan (Langsung ke WhatsApp Admin)
-function goToCheckout() {
+// ==========================================
+// 2. CHECKOUT: SIMPAN KE SUPABASE + BUKA WA
+// ==========================================
+window.goToCheckout = async function() {
     let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     
     if (cart.length === 0) {
@@ -128,6 +131,7 @@ function goToCheckout() {
 
     let itemListText = "";
     let grandTotal = 0;
+    const formattedItemsForDB = [];
 
     cart.forEach((item, index) => {
         const subtotal = Number(item.price) * item.qty;
@@ -138,10 +142,42 @@ function goToCheckout() {
 
         itemListText += `${index + 1}. ${item.name}${varianText}\n`;
         itemListText += `   Qty: ${item.qty} x IDR ${Number(item.price).toLocaleString('id-ID')} = IDR ${subtotal.toLocaleString('id-ID')}\n`;
+
+        // Format item agar rapi saat dibaca di halaman Admin
+        formattedItemsForDB.push({
+            name: `${item.name}${varianText}`,
+            price: Number(item.price),
+            quantity: item.qty
+        });
     });
 
     const orderId = "DS-" + new Date().getTime().toString().slice(-6);
 
+    showToast("Memproses pesanan...", "success");
+
+    try {
+        // 1. SIMPAN DATA PESANAN KE TABEL 'orders' SUPABASE
+        const { error } = await supabase
+            .from('orders')
+            .insert([{
+                order_id: orderId,
+                customer_name: namaPelanggan,
+                customer_phone: noWa,
+                shipping_address: alamat,
+                items: formattedItemsForDB,
+                total_price: grandTotal,
+                payment_status: 'pending'
+            }]);
+
+        if (error) {
+            console.error("Gagal simpan ke Supabase:", error.message);
+            // Tetap lanjut buka WA meskipun database gagal, biar pembeli tetap bisa order
+        }
+    } catch (err) {
+        console.error("Error koneksi:", err);
+    }
+
+    // 2. SUSUN PESAN & ALIHKAN KE WHATSAPP ADMIN
     const pesanWA = `Halo Admin DS by Delia Septianti, saya mau order:\n\n` +
                     `*No. Order:* #${orderId}\n` +
                     `*Detail Pesanan:*\n` +
@@ -154,19 +190,15 @@ function goToCheckout() {
                     `• Alamat: ${alamat}\n\n` +
                     `Mohon info ketersediaan stok dan total ongkirnya ya kak. Terima kasih!`;
 
-    // GANTI NOMOR DI BAWAH DENGAN NOMOR WA ADMIN (Wajib awalan 62)
     const adminWhatsApp = "6281285952703"; 
-
     const whatsappURL = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(pesanWA)}`;
-
-    showToast("Mengalihkan ke WhatsApp Admin...", "success");
 
     localStorage.removeItem('shoppingCart');
 
     setTimeout(() => {
         window.location.href = whatsappURL;
-    }, 600);
-}
+    }, 500);
+};
 
 window.addEventListener("DOMContentLoaded", () => {
     loadCart();
