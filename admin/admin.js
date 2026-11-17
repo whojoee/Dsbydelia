@@ -1,7 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // ==========================================
-// 0. SISTEM NOTIFIKASI CANTIK (TAILWIND)
+// 0. NOTIFIKASI TOAST & KONFIRMASI
 // ==========================================
 function showToast(message, type = 'success') {
     let container = document.getElementById('ds-toast-container');
@@ -18,7 +18,6 @@ function showToast(message, type = 'success') {
     toast.innerHTML = `<span>${message}</span>`;
     
     container.appendChild(toast);
-
     setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10);
     setTimeout(() => {
         toast.classList.add('translate-x-full', 'opacity-0');
@@ -28,15 +27,14 @@ function showToast(message, type = 'success') {
 
 function showConfirm(message, onConfirm) {
     const modalBg = document.createElement('div');
-    modalBg.className = 'fixed inset-0 bg-gray-900 bg-opacity-50 z-[9999] flex items-center justify-center p-4 transition-opacity';
-    
+    modalBg.className = 'fixed inset-0 bg-gray-900 bg-opacity-50 z-[9999] flex items-center justify-center p-4';
     modalBg.innerHTML = `
-        <div class="bg-white rounded-lg max-w-sm w-full p-6 shadow-xl transform transition-all">
+        <div class="bg-white rounded-lg max-w-sm w-full p-6 shadow-xl">
             <h3 class="text-lg font-bold text-gray-900 mb-2">Konfirmasi</h3>
             <p class="text-sm text-gray-600 mb-6">${message}</p>
             <div class="flex justify-end gap-3">
-                <button id="cancel-confirm-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-sm font-medium transition">Batal</button>
-                <button id="ok-confirm-btn" class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 text-sm font-medium transition">Yakin</button>
+                <button id="cancel-confirm-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-sm font-medium">Batal</button>
+                <button id="ok-confirm-btn" class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 text-sm font-medium">Yakin</button>
             </div>
         </div>
     `;
@@ -50,7 +48,7 @@ function showConfirm(message, onConfirm) {
 }
 
 // ==========================================
-// 1. SETUP KONEKSI SUPABASE & AUTH
+// 1. KONEKSI SUPABASE & AUTH
 // ==========================================
 const supabaseUrl = 'https://krnaolsztrnesmymbmmu.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybmFvbHN6dHJuZXNteW1ibW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTk0NDMsImV4cCI6MjA5OTg3NTQ0M30.ddZAXArx9A97-nhxw9d7_Xwur3jBq_jhquZEvti-AP8'; 
@@ -58,11 +56,17 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        window.location.href = 'login.html'; 
-    }
+    if (!session) window.location.href = 'login.html'; 
 }
 checkAuth();
+
+// Format nomor HP ke 628xxx untuk link wa.me
+function formatWaNumber(phone) {
+    if (!phone) return '';
+    let clean = phone.replace(/\D/g, '');
+    if (clean.startsWith('0')) clean = '62' + clean.slice(1);
+    return clean;
+}
 
 // ==========================================
 // 2. MANAJEMEN PESANAN (ORDERS)
@@ -73,8 +77,8 @@ const statusFilter = document.getElementById('status-filter');
 let allOrders = []; 
 
 async function fetchOrders() {
-    if(!tableBody) return; 
-    tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500 animate-pulse">Menarik data dari Supabase...</td></tr>`;
+    if (!tableBody) return; 
+    tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500 animate-pulse">Memuat pesanan...</td></tr>`;
     try {
         const { data: orders, error } = await supabase
             .from('orders')
@@ -86,8 +90,12 @@ async function fetchOrders() {
         renderTable(); 
     } catch (error) {
         console.error('Gagal narik data:', error.message);
-        tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">Gagal memuat data.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">Gagal memuat data pesanan.</td></tr>`;
     }
+}
+
+function isOrderPaid(status) {
+    return ['paid', 'SETTLEMENT', 'settlement'].includes(status);
 }
 
 function renderTable() {
@@ -97,12 +105,14 @@ function renderTable() {
     let filteredOrders = allOrders;
     if (filterValue === 'pending') {
         filteredOrders = allOrders.filter(o => o.payment_status === 'pending');
-    } else if (filterValue === 'SETTLEMENT' || filterValue === 'paid') {
-        filteredOrders = allOrders.filter(o => o.payment_status === 'SETTLEMENT' || o.payment_status === 'settlement' || o.payment_status === 'paid');
+    } else if (filterValue === 'paid') {
+        filteredOrders = allOrders.filter(o => isOrderPaid(o.payment_status));
+    } else if (filterValue === 'cancel') {
+        filteredOrders = allOrders.filter(o => o.payment_status === 'cancel' || o.payment_status === 'expire');
     }
 
-    if (!filteredOrders || filteredOrders.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Tidak ada pesanan untuk status ini.</td></tr>`;
+    if (!filteredOrders.length) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada pesanan di kategori ini.</td></tr>`;
         return;
     }
 
@@ -111,33 +121,44 @@ function renderTable() {
     filteredOrders.forEach((order) => {
         const formattedPrice = new Intl.NumberFormat('id-ID', {
             style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-        }).format(order.total_price);
+        }).format(order.total_price || 0);
 
         const dateObj = new Date(order.created_at);
         const formattedDate = dateObj.toLocaleDateString('id-ID', {
-            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
         });
 
+        let statusLabel = 'PENDING';
         let statusColor = 'bg-yellow-100 text-yellow-800 border-yellow-200'; 
-        if (order.payment_status === 'SETTLEMENT' || order.payment_status === 'settlement' || order.payment_status === 'paid') {
+        
+        if (isOrderPaid(order.payment_status)) {
+            statusLabel = 'LUNAS';
             statusColor = 'bg-green-100 text-green-800 border-green-200';
-        } else if (order.payment_status === 'expire' || order.payment_status === 'cancel') {
+        } else if (order.payment_status === 'cancel' || order.payment_status === 'expire') {
+            statusLabel = 'BATAL';
             statusColor = 'bg-red-100 text-red-800 border-red-200';
         }
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition border-b border-gray-50';
+        tr.className = 'hover:bg-gray-50 transition border-b border-gray-100';
         tr.innerHTML = `
-            <td class="px-6 py-4 font-medium text-gray-900">${order.order_id}</td>
-            <td class="px-6 py-4 text-gray-500 text-xs sm:text-sm">${formattedDate}</td>
+            <td class="px-6 py-4">
+                <div class="font-medium text-gray-900">${order.order_id}</div>
+                <div class="text-xs text-gray-400">${formattedDate}</div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="font-medium text-gray-800">${order.customer_name || 'Tanpa Nama'}</div>
+                <div class="text-xs text-gray-500">${order.customer_phone || '-'}</div>
+            </td>
             <td class="px-6 py-4 text-gray-900 font-semibold">${formattedPrice}</td>
             <td class="px-6 py-4">
                 <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${statusColor}">
-                    ${order.payment_status ? order.payment_status.toUpperCase() : 'PENDING'}
+                    ${statusLabel}
                 </span>
+                ${order.resi ? `<div class="text-[11px] text-blue-600 font-medium mt-1">Resi: ${order.resi}</div>` : ''}
             </td>
             <td class="px-6 py-4 text-center">
-                <button onclick="window.showDetail('${order.order_id}')" class="text-black hover:text-gray-600 font-medium text-sm underline decoration-gray-300 underline-offset-4 transition">
+                <button onclick="window.showDetail('${order.order_id}')" class="bg-black text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-gray-800 transition">
                     Kelola
                 </button>
             </td>
@@ -156,30 +177,29 @@ function renderStats() {
     let successCount = 0;
 
     allOrders.forEach(order => {
-        const isPaid = order.payment_status === 'SETTLEMENT' || order.payment_status === 'settlement' || order.payment_status === 'paid';
-        const isPending = order.payment_status === 'pending';
-
-        if (isPaid) {
+        if (isOrderPaid(order.payment_status)) {
             successCount++;
             const orderDate = new Date(order.created_at);
             if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
                 totalRevenue += Number(order.total_price) || 0;
             }
+        } else if (order.payment_status === 'pending') {
+            pendingCount++;
         }
-        if (isPending) pendingCount++;
     });
 
     const formattedRevenue = new Intl.NumberFormat('id-ID', {
         style: 'currency', currency: 'IDR', minimumFractionDigits: 0
     }).format(totalRevenue);
 
-    if(document.getElementById('stat-revenue')) document.getElementById('stat-revenue').textContent = formattedRevenue;
-    if(document.getElementById('stat-pending')) document.getElementById('stat-pending').textContent = pendingCount;
-    if(document.getElementById('stat-success')) document.getElementById('stat-success').textContent = successCount;
+    if (document.getElementById('stat-revenue')) document.getElementById('stat-revenue').textContent = formattedRevenue;
+    if (document.getElementById('stat-pending')) document.getElementById('stat-pending').textContent = pendingCount;
+    if (document.getElementById('stat-success')) document.getElementById('stat-success').textContent = successCount;
 }
 
 window.updateStatus = async function(orderId, newStatus) {
-    showConfirm(`Yakin mau ubah status order ${orderId} jadi ${newStatus.toUpperCase()}?`, async () => {
+    const label = newStatus === 'paid' ? 'LUNAS' : newStatus.toUpperCase();
+    showConfirm(`Ubah status pesanan ${orderId} menjadi ${label}?`, async () => {
         try {
             const { error } = await supabase
                 .from('orders')
@@ -188,12 +208,13 @@ window.updateStatus = async function(orderId, newStatus) {
 
             if (error) throw error;
 
-            showToast('Status pesanan berhasil diupdate!');
-            document.getElementById('detail-modal').remove(); 
+            showToast(`Status diubah ke ${label}!`);
+            const modal = document.getElementById('detail-modal');
+            if (modal) modal.remove(); 
             fetchOrders(); 
         } catch (error) {
             console.error('Gagal update status:', error.message);
-            showToast('Gagal update status. Coba lagi nanti.', 'error');
+            showToast('Gagal update status.', 'error');
         }
     });
 };
@@ -206,11 +227,11 @@ window.showDetail = function(orderId) {
     if (order.items) {
         let itemsArray = order.items;
         if (typeof itemsArray === 'string') {
-            try { itemsArray = JSON.parse(order.items); } catch(e) {}
+            try { itemsArray = JSON.parse(itemsArray); } catch(e) {}
         }
         if (Array.isArray(itemsArray) && itemsArray.length > 0) {
             itemsHtml = itemsArray.map(item => `
-                <div class="flex justify-between items-center border-b py-2 text-sm">
+                <div class="flex justify-between items-center border-b last:border-b-0 py-2 text-sm">
                     <div>
                         <p class="font-medium text-gray-800">${item.name || item.title || 'Produk'}</p>
                         <p class="text-xs text-gray-500">Qty: ${item.quantity || 1}</p>
@@ -221,6 +242,10 @@ window.showDetail = function(orderId) {
         }
     }
 
+    const waNumber = formatWaNumber(order.customer_phone);
+    const chatMessage = encodeURIComponent(`Halo kak ${order.customer_name || ''}, pesanan *${order.order_id}* di *DS by Delia Septianti* sudah kami terima ya.`);
+    const waChatLink = waNumber ? `https://wa.me/${waNumber}?text=${chatMessage}` : '#';
+
     let modalBg = document.getElementById('detail-modal');
     if (modalBg) modalBg.remove();
 
@@ -229,72 +254,70 @@ window.showDetail = function(orderId) {
     modalBg.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
     
     modalBg.innerHTML = `
-        <div class="bg-white rounded-lg max-w-lg w-full p-6 shadow-xl transform transition-all max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg max-w-lg w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Kelola Pesanan</h3>
-                <button onclick="document.getElementById('detail-modal').remove()" class="text-gray-400 hover:text-black font-bold text-xl">&times;</button>
-            </div>
-            
-            <div class="mb-4 space-y-1 text-sm text-gray-600">
-                <p><strong>Order ID:</strong> ${order.order_id}</p>
-                <p><strong>Total Belanja:</strong> Rp ${Number(order.total_price).toLocaleString('id-ID')}</p>
-                <p><strong>Status Saat Ini:</strong> <span class="bg-gray-200 px-2 py-1 rounded text-black font-semibold uppercase">${order.payment_status}</span></p>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">${order.order_id}</h3>
+                    <p class="text-xs text-gray-500">Total: <strong class="text-black">Rp ${Number(order.total_price).toLocaleString('id-ID')}</strong></p>
+                </div>
+                <button onclick="document.getElementById('detail-modal').remove()" class="text-gray-400 hover:text-black font-bold text-2xl leading-none">&times;</button>
             </div>
 
+            <!-- Info Pembeli + Tombol WA -->
             <div class="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200 text-sm">
-                <h4 class="font-bold text-gray-700 border-b pb-1 mb-2">Informasi Pengiriman</h4>
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-bold text-gray-700">Data Pembeli</h4>
+                    ${waNumber ? `<a href="${waChatLink}" target="_blank" class="bg-green-600 text-white px-2.5 py-1 rounded text-xs font-medium hover:bg-green-700 transition">Chat WA Pembeli</a>` : ''}
+                </div>
                 <p class="mb-1"><strong>Nama:</strong> ${order.customer_name || '-'}</p>
                 <p class="mb-1"><strong>No. WA:</strong> ${order.customer_phone || '-'}</p>
                 <p><strong>Alamat:</strong> ${order.shipping_address || '-'}</p>
             </div>
-            
-            <div class="mb-4 p-3 bg-blue-50 rounded-md border border-blue-200 text-sm">
-                <h4 class="font-bold text-blue-800 border-b border-blue-200 pb-1 mb-2">Pengiriman & Resi</h4>
-                <div class="flex gap-2 items-center">
-                    <input type="text" id="input-resi-${order.order_id}" value="${order.resi || ''}" placeholder="Masukkan No. Resi (misal: JX12345)" class="flex-1 px-3 py-2 border rounded text-sm outline-none focus:border-blue-500">
-                    <button onclick="window.kirimResi('${order.order_id}')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition font-medium">Simpan & Kirim WA</button>
-                </div>
-                ${order.resi ? `<p class="mt-2 text-xs text-green-600 font-semibold">✓ Resi sudah tersimpan: ${order.resi}</p>` : ''}
-            </div>
 
-            <div class="mb-6">
-                <h4 class="font-semibold text-gray-700 text-sm mb-2">Daftar Produk:</h4>
-                <div class="max-h-48 overflow-y-auto border rounded p-3 bg-gray-50">
+            <!-- Daftar Produk -->
+            <div class="mb-4">
+                <h4 class="font-semibold text-gray-700 text-sm mb-2">Produk Dipesan:</h4>
+                <div class="max-h-40 overflow-y-auto border rounded px-3 py-1 bg-gray-50">
                     ${itemsHtml}
                 </div>
             </div>
 
-            <div class="border-t pt-4">
-                <p class="text-xs text-gray-500 mb-2">Ubah Status Manual:</p>
-                <div class="flex space-x-2 mb-4">
-                    <button onclick="window.updateStatus('${order.order_id}', 'settlement')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs hover:bg-green-700">Set Lunas</button>
-                    <button onclick="window.updateStatus('${order.order_id}', 'cancel')" class="bg-red-600 text-white px-3 py-1.5 rounded text-xs hover:bg-red-700">Batalkan</button>
-                    <button onclick="window.updateStatus('${order.order_id}', 'pending')" class="bg-yellow-500 text-white px-3 py-1.5 rounded text-xs hover:bg-yellow-600">Set Pending</button>
-                </div>
-                
-                <div class="flex justify-end">
-                    <button onclick="document.getElementById('detail-modal').remove()" class="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800 transition">
-                        Tutup
+            <!-- Input Resi & Kirim Langsung via WA -->
+            <div class="mb-5 p-3 bg-blue-50 rounded-md border border-blue-200 text-sm">
+                <h4 class="font-bold text-blue-900 mb-2">Input & Kirim No. Resi</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="input-resi-${order.order_id}" value="${order.resi || ''}" placeholder="Masukkan nomor resi..." class="flex-1 px-3 py-2 border rounded text-sm bg-white outline-none focus:border-blue-500">
+                    <button onclick="window.kirimResiWA('${order.order_id}')" class="bg-blue-600 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-blue-700 transition font-medium whitespace-nowrap">
+                        Simpan & WA
                     </button>
                 </div>
+            </div>
+
+            <!-- Ubah Status -->
+            <div class="border-t pt-4 flex flex-wrap justify-between items-center gap-2">
+                <div class="flex gap-2">
+                    <button onclick="window.updateStatus('${order.order_id}', 'paid')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-green-700">Tandai Lunas</button>
+                    <button onclick="window.updateStatus('${order.order_id}', 'pending')" class="bg-yellow-500 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-yellow-600">Pending</button>
+                    <button onclick="window.updateStatus('${order.order_id}', 'cancel')" class="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-red-700">Batal</button>
+                </div>
+                <button onclick="document.getElementById('detail-modal').remove()" class="bg-gray-200 text-gray-800 px-4 py-1.5 rounded text-xs font-medium hover:bg-gray-300">
+                    Tutup
+                </button>
             </div>
         </div>
     `;
     document.body.appendChild(modalBg);
 };
 
-window.kirimResi = async function(orderId) {
-    const inputResi = document.getElementById(`input-resi-${orderId}`).value;
-    
+window.kirimResiWA = async function(orderId) {
+    const inputResi = document.getElementById(`input-resi-${orderId}`).value.trim();
     if (!inputResi) {
-        showToast('Nomor resi tidak boleh kosong bro!', 'error');
+        showToast('Nomor resi belum diisi bro!', 'error');
         return;
     }
 
-    const btn = event.currentTarget;
-    const originalText = btn.innerText;
-    btn.innerText = 'Mengirim...';
-    btn.disabled = true;
+    const order = allOrders.find(o => o.order_id === orderId);
+    if (!order) return;
 
     try {
         // 1. Simpan resi ke Supabase
@@ -305,31 +328,32 @@ window.kirimResi = async function(orderId) {
 
         if (error) throw error;
 
-        // 2. Panggil Vercel API untuk ngirim WA
-        const response = await fetch('/api/kirim-resi', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ order_id: orderId, resi: inputResi })
-        });
+        showToast('Resi tersimpan! Membuka WhatsApp...');
+        fetchOrders();
 
-        if (!response.ok) throw new Error('Gagal kirim WA');
+        // 2. Buka WhatsApp pembeli otomatis dengan template pesan resi
+        const waNumber = formatWaNumber(order.customer_phone);
+        if (waNumber) {
+            const text = encodeURIComponent(
+                `Halo kak *${order.customer_name || ''}*, terima kasih sudah belanja di *DS by Delia Septianti*!\n\n` +
+                `Pesanan *${order.order_id}* sudah kami kirim dengan nomor resi:\n` +
+                `*${inputResi}*\n\n` +
+                `Silakan ditunggu paketnya ya kak 🙏`
+            );
+            window.open(`https://wa.me/${waNumber}?text=${text}`, '_blank');
+        }
 
-        showToast('Resi berhasil disimpan & WA terkirim!');
-        document.getElementById('detail-modal').remove(); 
-        fetchOrders(); // Refresh tabel
+        const modal = document.getElementById('detail-modal');
+        if (modal) modal.remove();
     } catch (error) {
-        console.error('Error resi:', error.message);
-        showToast('Gagal memproses resi. Coba lagi.', 'error');
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
+        console.error('Error simpan resi:', error.message);
+        showToast('Gagal menyimpan resi.', 'error');
     }
 };
 
 // ==========================================
-// 3. MANAJEMEN PRODUK (TAMBAH, TAMPIL, EDIT, HAPUS)
+// 3. MANAJEMEN PRODUK
 // ==========================================
-
 window.loadProducts = async function() {
     const productTableBody = document.getElementById('product-table-body');
     if (!productTableBody) return; 
@@ -356,13 +380,8 @@ window.loadProducts = async function() {
             }).format(product.price);
 
             let finalImageUrl = 'https://placehold.co/100x100?text=No+Photo'; 
-            
             if (product.image_url) {
-                if (product.image_url.startsWith('http')) {
-                    finalImageUrl = product.image_url;
-                } else {
-                    finalImageUrl = `../${product.image_url}`;
-                }
+                finalImageUrl = product.image_url.startsWith('http') ? product.image_url : `../${product.image_url}`;
             }
 
             const tr = document.createElement('tr');
@@ -375,7 +394,7 @@ window.loadProducts = async function() {
                 <td class="px-6 py-4 text-gray-900">${formattedPrice}</td>
                 <td class="px-6 py-4 text-gray-500">${product.category}</td>
                 <td class="px-6 py-4">
-                    <button onclick="window.openEditModal('${product.id}', '${product.name}', ${product.price}, '${product.category}')" class="text-blue-600 hover:text-blue-900 mr-3 font-medium">Edit</button>
+                    <button onclick="window.openEditModal('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.category}')" class="text-blue-600 hover:text-blue-900 mr-3 font-medium">Edit</button>
                     <button onclick="window.deleteProduct('${product.id}')" class="text-red-600 hover:text-red-900 font-medium">Hapus</button>
                 </td>
             `;
@@ -386,21 +405,14 @@ window.loadProducts = async function() {
     }
 };
 
-// --- FITUR HAPUS PRODUK ---
 window.deleteProduct = function(id) {
     showConfirm("Yakin mau menghapus produk ini dari toko?", async () => {
         try {
-            const { error } = await supabase
-                .from('products')
-                .delete()
-                .eq('id', id);
-
+            const { error } = await supabase.from('products').delete().eq('id', id);
             if (error) throw error;
-
             showToast('Produk berhasil dihapus!');
-            window.loadProducts(); // Refresh tabel produk
+            window.loadProducts();
         } catch (error) {
-            console.error('Gagal hapus produk:', error.message);
             showToast('Gagal menghapus produk: ' + error.message, 'error');
         }
     });
@@ -418,8 +430,7 @@ if (addProductForm) {
         const name = document.getElementById('productName').value;
         const price = document.getElementById('productPrice').value;
         const category = document.getElementById('productCategory').value;
-        const imageFilesInput = document.getElementById('productImageFiles');
-        const files = imageFilesInput.files;
+        const files = document.getElementById('productImageFiles').files;
 
         try {
             if (!files || files.length === 0) throw new Error('Pilih minimal 1 foto produk!');
@@ -440,7 +451,7 @@ if (addProductForm) {
                 uploadedUrls.push(publicURLData.publicUrl);
             }
 
-            submitProductBtn.innerText = 'Menyimpan data produk...';
+            submitProductBtn.innerText = 'Menyimpan produk...';
 
             const { error: insertError } = await supabase
                 .from('products')
@@ -448,13 +459,11 @@ if (addProductForm) {
 
             if (insertError) throw insertError;
 
-            showToast('Mantap bro! Berhasil upload dan nambahin produk baru.');
+            showToast('Produk baru berhasil ditambahkan!');
             addProductForm.reset();
             window.loadProducts(); 
-
         } catch (error) {
-            console.error('Gagal tambah produk:', error.message);
-            showToast('Waduh, gagal nambah produk nih: ' + error.message, 'error');
+            showToast('Gagal nambah produk: ' + error.message, 'error');
         } finally {
             submitProductBtn.innerText = originalBtnText;
             submitProductBtn.disabled = false;
@@ -470,12 +479,11 @@ window.openEditModal = function(id, name, price, category) {
     document.getElementById('editProductName').value = name;
     document.getElementById('editProductPrice').value = price;
     document.getElementById('editProductCategory').value = category;
-    
-    if(editProductModal) editProductModal.classList.remove('hidden');
+    if (editProductModal) editProductModal.classList.remove('hidden');
 };
 
 window.closeEditModal = function() {
-    if(editProductModal) {
+    if (editProductModal) {
         editProductModal.classList.add('hidden');
         editProductForm.reset();
     }
@@ -506,8 +514,7 @@ if (editProductForm) {
             window.closeEditModal();
             window.loadProducts(); 
         } catch (error) {
-            console.error('Gagal update produk:', error.message);
-            showToast('Gagal update produk nih: ' + error.message, 'error');
+            showToast('Gagal update produk: ' + error.message, 'error');
         } finally {
             saveBtn.disabled = false;
             saveBtn.innerText = originalText;
@@ -516,10 +523,19 @@ if (editProductForm) {
 }
 
 // ==========================================
-// 4. JALANKAN SAAT HALAMAN DIBUKA
+// 4. INISIALISASI & REALTIME LISTENER
 // ==========================================
 fetchOrders();
 window.loadProducts();
 
 if (refreshBtn) refreshBtn.addEventListener('click', fetchOrders);
 if (statusFilter) statusFilter.addEventListener('change', renderTable);
+
+// Dengarkan orderan baru yang masuk ke tabel 'orders' secara otomatis
+supabase
+    .channel('orders-realtime')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+        showToast(`Orderan baru masuk: ${payload.new.order_id}`);
+        fetchOrders();
+    })
+    .subscribe();
